@@ -1,13 +1,5 @@
 # 🎬 Knowledge Graph de Filmes
 
-> Projeto acadêmico de implementação de um Knowledge Graph para análise de relações cinematográficas usando Python (implementação do zero).
-
-![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
-![Pyvis](https://img.shields.io/badge/Pyvis-0.3.2-green)
-![License](https://img.shields.io/badge/License-MIT-yellow)
-
----
-
 ## 📋 Sobre o Projeto
 
 Este projeto implementa um **Knowledge Graph (Grafo de Conhecimento)** totalmente do zero, sem usar bibliotecas prontas de grafos. O sistema modela relações entre filmes, diretores, atores e gêneros cinematográficos, permitindo:
