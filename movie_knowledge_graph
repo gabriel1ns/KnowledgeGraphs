@@ -1,0 +1,445 @@
+import pandas as pd
+from collections import deque
+
+class Graph:
+    """Classe de grafo implementada do zero"""
+    def __init__(self):
+        self.adjacency_list = {}
+        self.nodes_data = {}
+        
+    def add_node(self, node, **attributes):
+        """Adiciona um nó ao grafo"""
+        if node not in self.adjacency_list:
+            self.adjacency_list[node] = {}
+            self.nodes_data[node] = attributes
+            
+    def add_edge(self, node1, node2, label=None):
+        """Adiciona uma aresta entre dois nós (grafo não direcionado)"""
+        if node1 not in self.adjacency_list:
+            self.add_node(node1)
+        if node2 not in self.adjacency_list:
+            self.add_node(node2)
+        
+        self.adjacency_list[node1][node2] = label
+        self.adjacency_list[node2][node1] = label
+        
+    def remove_node(self, node):
+        """Remove um nó e todas as suas arestas"""
+        if node in self.adjacency_list:
+            for neighbor in list(self.adjacency_list[node].keys()):
+                del self.adjacency_list[neighbor][node]
+            
+            del self.adjacency_list[node]
+            if node in self.nodes_data:
+                del self.nodes_data[node]
+                
+    def remove_edge(self, node1, node2):
+        """Remove uma aresta entre dois nós"""
+        if node1 in self.adjacency_list and node2 in self.adjacency_list[node1]:
+            del self.adjacency_list[node1][node2]
+            del self.adjacency_list[node2][node1]
+            
+    def get_neighbors(self, node):
+        """Retorna os vizinhos de um nó"""
+        return list(self.adjacency_list.get(node, {}).keys())
+    
+    def get_edge_label(self, node1, node2):
+        """Retorna o label da aresta entre dois nós"""
+        if node1 in self.adjacency_list and node2 in self.adjacency_list[node1]:
+            return self.adjacency_list[node1][node2]
+        return None
+    
+    def get_degree(self, node):
+        """Retorna o grau (número de conexões) de um nó"""
+        return len(self.adjacency_list.get(node, {}))
+    
+    def get_all_nodes(self):
+        """Retorna lista de todos os nós"""
+        return list(self.adjacency_list.keys())
+    
+    def get_all_edges(self):
+        """Retorna lista de todas as arestas"""
+        edges = []
+        visited = set()
+        for node1 in self.adjacency_list:
+            for node2 in self.adjacency_list[node1]:
+                edge = tuple(sorted([node1, node2]))
+                if edge not in visited:
+                    visited.add(edge)
+                    edges.append((node1, node2, self.adjacency_list[node1][node2]))
+        return edges
+    
+    def number_of_nodes(self):
+        """Retorna o número total de nós"""
+        return len(self.adjacency_list)
+    
+    def number_of_edges(self):
+        """Retorna o número total de arestas"""
+        return len(self.get_all_edges())
+    
+    def has_edge(self, node1, node2):
+        """Verifica se existe aresta entre dois nós"""
+        return node1 in self.adjacency_list and node2 in self.adjacency_list[node1]
+
+
+class MovieKnowledgeGraph:
+    """Classe para gerenciar um Knowledge Graph de filmes - Implementação do Zero"""
+    
+    def __init__(self):
+        self.G = Graph()
+        self.df = None
+        
+    def create_base_knowledge(self):
+        """Cria a base de conhecimento com filmes, atores, diretores e gêneros"""
+        
+        head = [
+            '2001: A Space Odyssey', 'Citizen Kane', 'Vertigo', 'Persona', 
+            'Tokyo Story', '8½', 'The Seventh Seal', 'Stalker',
+            'Mirror', 'Solaris', 'Andrei Rublev', 'Mulholland Drive',
+            'In the Mood for Love', 'Bicycle Thieves', 'La Dolce Vita',
+            
+            '2001: A Space Odyssey', 'Citizen Kane', 'Vertigo', 'Persona',
+            'Tokyo Story', '8½', 'The Seventh Seal', 'Stalker',
+            'Mirror', 'Solaris', 'Andrei Rublev', 'Mulholland Drive',
+            'In the Mood for Love', 'Bicycle Thieves', 'La Dolce Vita',
+            
+            '2001: A Space Odyssey', '2001: A Space Odyssey', 'Citizen Kane', 'Vertigo',
+            'Persona', 'Tokyo Story', '8½', 'The Seventh Seal',
+            'Stalker', 'Mirror', 'Solaris', 'Andrei Rublev',
+            'Mulholland Drive', 'In the Mood for Love', 'Bicycle Thieves', 'La Dolce Vita',
+            
+            'Keir Dullea', 'Orson Welles', 'James Stewart', 
+            'Liv Ullmann', 'Setsuko Hara', 'Marcello Mastroianni', 'Max von Sydow',
+            'Alexander Kaidanovsky', 'Margarita Terekhova', 'Donatas Banionis',
+            'Anatoly Solonitsyn', 'Naomi Watts', 'Tony Leung', 'Lamberto Maggiorani',
+            
+            'Sci-Fi', 'Drama', 'Mystery'
+        ]
+        
+        relation = [
+            'directed_by', 'directed_by', 'directed_by', 'directed_by',
+            'directed_by', 'directed_by', 'directed_by', 'directed_by',
+            'directed_by', 'directed_by', 'directed_by', 'directed_by',
+            'directed_by', 'directed_by', 'directed_by',
+            
+            'stars', 'stars', 'stars', 'stars',
+            'stars', 'stars', 'stars', 'stars',
+            'stars', 'stars', 'stars', 'stars',
+            'stars', 'stars', 'stars',
+            
+            'genre', 'genre', 'genre', 'genre',
+            'genre', 'genre', 'genre', 'genre',
+            'genre', 'genre', 'genre', 'genre',
+            'genre', 'genre', 'genre', 'genre',
+            
+            'acted_in', 'acted_in', 'acted_in',
+            'acted_in', 'acted_in', 'acted_in', 'acted_in',
+            'acted_in', 'acted_in', 'acted_in',
+            'acted_in', 'acted_in', 'acted_in', 'acted_in',
+            
+            'related_to', 'related_to', 'related_to'
+        ]
+        
+        tail = [
+            'Stanley Kubrick', 'Orson Welles', 'Alfred Hitchcock', 'Ingmar Bergman',
+            'Yasujiro Ozu', 'Federico Fellini', 'Ingmar Bergman', 'Andrei Tarkovsky',
+            'Andrei Tarkovsky', 'Andrei Tarkovsky', 'Andrei Tarkovsky', 'David Lynch',
+            'Wong Kar-wai', 'Vittorio De Sica', 'Federico Fellini',
+            
+            'Keir Dullea', 'Orson Welles', 'James Stewart', 'Liv Ullmann',
+            'Setsuko Hara', 'Marcello Mastroianni', 'Max von Sydow', 'Alexander Kaidanovsky',
+            'Margarita Terekhova', 'Donatas Banionis', 'Anatoly Solonitsyn', 'Naomi Watts',
+            'Tony Leung', 'Lamberto Maggiorani', 'Marcello Mastroianni',
+            
+            'Sci-Fi', 'Philosophical', 'Drama', 'Mystery',
+            'Drama', 'Drama', 'Drama', 'Philosophical',
+            'Drama', 'Drama', 'Sci-Fi', 'Historical',
+            'Mystery', 'Romance', 'Neorealism', 'Drama',
+            
+            '2001: A Space Odyssey', 'Citizen Kane', 'Vertigo',
+            'Persona', 'Tokyo Story', 'La Dolce Vita', 'The Seventh Seal',
+            'Stalker', 'Mirror', 'Solaris',
+            'Andrei Rublev', 'Mulholland Drive', 'In the Mood for Love', 'Bicycle Thieves',
+            
+            'Philosophical', 'Romance', 'Psychological'
+        ]
+        
+        self.df = pd.DataFrame({
+            'head': head,
+            'relation': relation,
+            'tail': tail
+        })
+        
+        for _, row in self.df.iterrows():
+            self.add_edge(row['head'], row['tail'], row['relation'])
+            
+        return self.df
+    
+    def add_node(self, node_name, node_type=None):
+        """Adiciona um novo nó ao grafo"""
+        self.G.add_node(node_name, type=node_type)
+        
+    def add_edge(self, node1, node2, relation):
+        """Adiciona uma nova aresta (relacionamento) entre dois nós"""
+        self.G.add_edge(node1, node2, label=relation)
+        
+    def remove_node(self, node_name):
+        """Remove um nó do grafo"""
+        if node_name in self.G.adjacency_list:
+            self.G.remove_node(node_name)
+            
+    def remove_edge(self, node1, node2):
+        """Remove uma aresta entre dois nós"""
+        if self.G.has_edge(node1, node2):
+            self.G.remove_edge(node1, node2)
+    
+    def query_node(self, node_name):
+        """Consulta informações sobre um nó específico"""
+        if node_name in self.G.adjacency_list:
+            neighbors = self.G.get_neighbors(node_name)
+            degree = self.G.get_degree(node_name)
+            
+            return {'node': node_name, 'degree': degree, 'neighbors': neighbors}
+        else:
+            return None
+    
+    def query_relationship(self, node1, node2):
+        """Consulta o relacionamento entre dois nós"""
+        label = self.G.get_edge_label(node1, node2)
+        return label
+    
+    def find_shortest_path(self, source, target):
+        """Encontra o caminho mais curto entre dois nós usando BFS"""
+        if source not in self.G.adjacency_list or target not in self.G.adjacency_list:
+            return None
+        
+        queue = deque([(source, [source])])
+        visited = {source}
+        
+        while queue:
+            current_node, path = queue.popleft()
+            
+            if current_node == target:
+                return path
+            
+            for neighbor in self.G.get_neighbors(current_node):
+                if neighbor not in visited:
+                    visited.add(neighbor)
+                    queue.append((neighbor, path + [neighbor]))
+        
+        return None
+    
+    def get_statistics(self):
+        """Retorna estatísticas do grafo"""
+        num_nodes = self.G.number_of_nodes()
+        num_edges = self.G.number_of_edges()
+        
+        density = 0
+        if num_nodes > 1:
+            density = (2 * num_edges) / (num_nodes * (num_nodes - 1))
+        
+        return {
+            'nodes': num_nodes,
+            'edges': num_edges,
+            'density': density
+        }
+    
+    def calculate_degree_centrality(self):
+        """Calcula Degree Centrality: DC(v) = degree(v) / (n - 1)"""
+        n = self.G.number_of_nodes()
+        if n <= 1:
+            return {}
+        
+        centrality = {}
+        for node in self.G.get_all_nodes():
+            degree = self.G.get_degree(node)
+            centrality[node] = degree / (n - 1)
+        
+        return centrality
+    
+    def calculate_betweenness_centrality(self):
+        """Calcula Betweenness Centrality usando algoritmo de Brandes"""
+        nodes = self.G.get_all_nodes()
+        betweenness = {node: 0.0 for node in nodes}
+        
+        for source in nodes:
+            stack = []
+            predecessors = {node: [] for node in nodes}
+            sigma = {node: 0 for node in nodes}
+            sigma[source] = 1
+            distance = {node: -1 for node in nodes}
+            distance[source] = 0
+            
+            queue = deque([source])
+            
+            while queue:
+                v = queue.popleft()
+                stack.append(v)
+                
+                for w in self.G.get_neighbors(v):
+                    if distance[w] < 0:
+                        queue.append(w)
+                        distance[w] = distance[v] + 1
+                    
+                    if distance[w] == distance[v] + 1:
+                        sigma[w] += sigma[v]
+                        predecessors[w].append(v)
+            
+            delta = {node: 0.0 for node in nodes}
+            while stack:
+                w = stack.pop()
+                for v in predecessors[w]:
+                    delta[v] += (sigma[v] / sigma[w]) * (1 + delta[w])
+                if w != source:
+                    betweenness[w] += delta[w]
+        
+        n = len(nodes)
+        if n > 2:
+            scale = 1.0 / ((n - 1) * (n - 2))
+            for node in betweenness:
+                betweenness[node] *= scale
+        
+        return betweenness
+    
+    def calculate_closeness_centrality(self):
+        """Calcula Closeness Centrality: CC(v) = (n-1) / soma_distâncias(v, todos)"""
+        nodes = self.G.get_all_nodes()
+        closeness = {}
+        
+        for node in nodes:
+            distances = {n: float('inf') for n in nodes}
+            distances[node] = 0
+            queue = deque([node])
+            visited = {node}
+            
+            while queue:
+                current = queue.popleft()
+                for neighbor in self.G.get_neighbors(current):
+                    if neighbor not in visited:
+                        visited.add(neighbor)
+                        distances[neighbor] = distances[current] + 1
+                        queue.append(neighbor)
+            
+            total_distance = sum(d for d in distances.values() if d != float('inf'))
+            reachable = sum(1 for d in distances.values() if d != float('inf') and d > 0)
+            
+            if total_distance > 0 and reachable > 0:
+                closeness[node] = reachable / total_distance
+            else:
+                closeness[node] = 0.0
+        
+        return closeness
+    
+    def centrality_analysis(self):
+        """Análise de centralidade dos nós"""
+        degree_cent = self.calculate_degree_centrality()
+        betweenness_cent = self.calculate_betweenness_centrality()
+        closeness_cent = self.calculate_closeness_centrality()
+        
+        return {
+            'degree': degree_cent,
+            'betweenness': betweenness_cent,
+            'closeness': closeness_cent
+        }
+    
+    def visualize_interactive(self, output_file='outputs/interactive_graph.html', 
+                             height='800px', width='100%'):
+        """Cria visualização interativa do grafo em HTML usando Pyvis"""
+        try:
+            from pyvis.network import Network
+        except ImportError:
+            return
+        
+        net = Network(height=height, width=width, notebook=False)
+        
+        net.barnes_hut(gravity=-8000, central_gravity=0.3, 
+                      spring_length=100, spring_strength=0.001)
+        
+        node_types = {
+            'movies': ['2001: A Space Odyssey', 'Citizen Kane', 'Vertigo', 'Persona', 
+                      'Tokyo Story', '8½', 'The Seventh Seal', 'Stalker',
+                      'Mirror', 'Solaris', 'Andrei Rublev', 'Mulholland Drive',
+                      'In the Mood for Love', 'Bicycle Thieves', 'La Dolce Vita'],
+            'directors': ['Stanley Kubrick', 'Orson Welles', 'Alfred Hitchcock', 'Ingmar Bergman',
+                         'Yasujiro Ozu', 'Federico Fellini', 'Andrei Tarkovsky', 'David Lynch',
+                         'Wong Kar-wai', 'Vittorio De Sica'],
+            'genres': ['Sci-Fi', 'Drama', 'Mystery', 'Philosophical', 'Romance', 
+                      'Neorealism', 'Historical', 'Psychological']
+        }
+        
+        for node in self.G.get_all_nodes():
+            if node in node_types['movies']:
+                color, title = '#3498db', f' Filme: {node}'
+            elif node in node_types['directors']:
+                color, title = '#e74c3c', f' Diretor: {node}'
+            elif node in node_types['genres']:
+                color, title = '#f39c12', f' Gênero: {node}'
+            else:
+                color, title = '#2ecc71', f' Ator: {node}'
+            
+            degree = self.G.get_degree(node)
+            net.add_node(node, label=node, color=color, title=title, size=15 + degree * 2)
+        
+        for edge in self.G.get_all_edges():
+            source, target, label = edge
+            net.add_edge(source, target, title=label if label else '')
+        
+        import os
+        os.makedirs(os.path.dirname(output_file) if os.path.dirname(output_file) else '.', exist_ok=True)
+        
+        try:
+            net.save_graph(output_file)
+        except:
+            net.write_html(output_file)
+        
+        return output_file
+    
+    def list_all_nodes(self):
+        """Lista todos os nós do grafo"""
+        return self.G.get_all_nodes()
+    
+    def list_all_relationships(self):
+        """Lista todos os relacionamentos únicos"""
+        relations = set()
+        for _, _, label in self.G.get_all_edges():
+            if label:
+                relations.add(label)
+        return list(relations)
+
+
+if __name__ == "__main__":
+    print("MOVIE KNOWLEDGE GRAPH")
+    kg = MovieKnowledgeGraph()
+    kg.create_base_knowledge()
+    
+    stats = kg.get_statistics()
+    print(f"\nGraph created: {stats['nodes']} nodes, {stats['edges']} edges\n")
+    
+    # Query examples
+    print("Query 1 - Node info (Andrei Tarkovsky):")
+    info = kg.query_node('Andrei Tarkovsky')
+    if info:
+        print(f"  Degree: {info['degree']}")
+        print(f"  Neighbors: {', '.join(info['neighbors'][:3])}...\n")
+    
+    print("Query 2 - Relationship (Stalker -> Andrei Tarkovsky):")
+    rel = kg.query_relationship('Tokyo Story', 'Andrei Tarkovsky')
+    print(f"  {rel}\n")
+    
+    print("Query 3 - Shortest path (Stalker -> Mulholland Drive):")
+    path = kg.find_shortest_path('Stalker', 'Mulholland Drive')
+    if path:
+        print(f"  {' -> '.join(path)}\n")
+    
+    print("Query 4 - Top 5 Degree Centrality:")
+    centrality = kg.centrality_analysis()
+    degree_sorted = sorted(centrality['degree'].items(), key=lambda x: x[1], reverse=True)
+    for node, score in degree_sorted[:5]:
+        print(f"  {node}: {score:.3f}")
+    
+    print("\nGenerating interactive visualization...")
+    output = kg.visualize_interactive(output_file='outputs/interactive_graph.html')
+    print(f"Saved: {output}")
+    
+    import os
+    os.system(f'start {output}')
