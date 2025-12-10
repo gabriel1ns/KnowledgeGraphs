@@ -1,5 +1,11 @@
 # 🎬 Knowledge Graph de Filmes
 
+> Projeto acadêmico de implementação de um Knowledge Graph para análise de relações cinematográficas usando Python.
+
+
+
+---
+
 ## 📋 Sobre o Projeto
 
 Este projeto implementa um **Knowledge Graph (Grafo de Conhecimento)** totalmente do zero, sem usar bibliotecas prontas de grafos. O sistema modela relações entre filmes, diretores, atores e gêneros cinematográficos, permitindo:
@@ -12,12 +18,12 @@ Este projeto implementa um **Knowledge Graph (Grafo de Conhecimento)** totalment
 - 🌐 Exportar visualização interativa e navegável no navegador
 
 **Base de Conhecimento:**
-- 37 nós (entidades)
-- 37 arestas (relacionamentos)
-- 10 filmes clássicos
-- 8 diretores renomados
-- 13 atores famosos
-- 6 gêneros cinematográficos
+- 48 nós (entidades)
+- 62 arestas (relacionamentos)
+- 15 filmes clássicos
+- 10 diretores renomados
+- 14 atores famosos
+- 9 gêneros cinematográficos
 
 ---
 
@@ -89,11 +95,9 @@ pyvis>=0.3.2           # Visualização interativa em HTML
 
 **Este projeto NÃO usa bibliotecas prontas de grafos!** Toda a estrutura e algoritmos foram implementados manualmente:
 
-- ✅ **Estrutura de Grafo**: Lista de adjacências com dicionários Python
+- ✅ **Estrutura de Grafo**: Lista de adjacências com dicionários Python (classe Graph separada)
 - ✅ **BFS (Busca em Largura)**: Para encontrar caminho mais curto
 - ✅ **Degree Centrality**: Cálculo manual usando fórmula matemática
-- ✅ **Betweenness Centrality**: Algoritmo de Brandes implementado do zero
-- ✅ **Closeness Centrality**: BFS + cálculo de distâncias médias
 - ✅ **Operações CRUD**: Adicionar/remover nós e arestas
 - ✅ **Visualização Interativa**: Grafo navegável em HTML usando Pyvis
 
@@ -105,25 +109,25 @@ pyvis>=0.3.2           # Visualização interativa em HTML
 kg = MovieKnowledgeGraph()
 
 # Adicionar elementos
-kg.add_node('Titanic', node_type='movie')
-kg.add_edge('Titanic', 'James Cameron', 'directed_by')
+kg.add_node('The Shining', node_type='movie')
+kg.add_edge('The Shining', 'Stanley Kubrick', 'directed_by')
 
 # Remover elementos
-kg.remove_node('Titanic')
-kg.remove_edge('Inception', 'Leonardo DiCaprio')
+kg.remove_node('Psychological')
+kg.remove_edge('The Shining', 'Stanley Kubrick')
 ```
 
 ### Consultas
 
 ```python
 # Consultar informações de um nó
-kg.query_node('Christopher Nolan')
+kg.query_node('Andrei Tarkovsky')
 
 # Verificar relacionamento entre dois nós
-kg.query_relationship('The Matrix', 'Keanu Reeves')
+kg.query_relationship('Stalker', 'Andrei Tarkovsky')
 
 # Encontrar caminho mais curto
-kg.find_shortest_path('The Godfather', 'Sci-Fi')
+kg.find_shortest_path('Keir Dullea', 'Vittorio De Sica')
 
 # Listar todos os nós
 kg.list_all_nodes()
@@ -138,8 +142,8 @@ kg.list_all_relationships()
 # Estatísticas gerais
 kg.get_statistics()
 
-# Análise de centralidade
-kg.centrality_analysis()
+# Degree Centrality
+kg.calculate_degree_centrality()
 
 # Visualização interativa (HTML)
 kg.visualize_interactive(output_file='outputs/interactive_graph.html')
@@ -161,7 +165,7 @@ Ao executar o programa, você verá:
 ```
 MOVIE KNOWLEDGE GRAPH
 
-Graph created: 37 nodes, 37 edges
+Graph created: 48 nodes, 62 edges
 
 Query 1 - Node info (Andrei Tarkovsky):
   Degree: 4
@@ -170,13 +174,24 @@ Query 1 - Node info (Andrei Tarkovsky):
 Query 2 - Relationship (Stalker -> Andrei Tarkovsky):
   directed_by
 
-Query 3 - Shortest path (Stalker -> Mulholland Drive):
-  Stalker -> Andrei Tarkovsky -> Mulholland Drive
+Query 3 - Shortest path (Keir Dullea -> Vittorio De Sica):
+  Keir Dullea -> 2001: A Space Odyssey -> Sci-Fi -> ...
 
-Query 4 - Top 5 Degree Centrality:
+Query 4 - Adding new node and edge:
+  Added 'The Shining' directed by 'Stanley Kubrick'
+  Graph now has: 49 nodes, 63 edges
+
+Query 5 - Removing edge:
+  Removed edge between 'The Shining' and 'Stanley Kubrick'
+  Graph now has: 62 edges
+
+Query 6 - Removing node:
+  Removed 'Psychological' node
+  Graph now has: 48 nodes, 61 edges
+
+Query 7 - Top 5 Degree Centrality:
   Andrei Tarkovsky: 0.111
   Ingmar Bergman: 0.083
-  Marcello Mastroianni: 0.083
   ...
 
 Generating interactive visualization...
@@ -193,6 +208,7 @@ Uma visualização interativa será gerada e aberta automaticamente no seu naveg
 KnowledgeGraphs/
 │
 ├── movie_knowledge_graph      # Código principal (sem extensão .py)
+├── Graph.py                   # Classe Graph - implementação do grafo
 ├── requirements.txt           # Dependências (pandas e pyvis)
 ├── README.md                  # Este arquivo
 │
@@ -215,14 +231,11 @@ Este projeto demonstra:
 1. **Knowledge Graphs**: Representação semântica de conhecimento
 2. **Teoria de Grafos**: Nós, arestas, caminhos, centralidade
 3. **Estruturas de Dados**: Implementação de grafos com dicionários
-4. **Algoritmos de Grafos**:
+4. **Algoritmos de Grafos**: 
    - BFS (Busca em Largura)
-   - Cálculos de centralidade (Degree, Betweenness, Closeness)
-   - Algoritmo de Brandes
+   - Cálculo de centralidade (Degree Centrality)
 5. **Visualização Interativa**: Grafos navegáveis em HTML
-6. **Python Avançado**: Classes, dicionários, collections.deque
-
----
+6. **Python Avançado**: Classes, dicionários, collections.deque, módulos---
 
 ## 🔧 Personalização
 
@@ -268,40 +281,3 @@ node_colors = {
 - **Tutorial Original**: Lopez Yse, D. "Knowledge Graphs from scratch with Python"
 
 ---
-
-## 🐛 Troubleshooting
-
-### Erro: "ModuleNotFoundError: No module named 'pandas'" ou 'pyvis'
-
-**Solução:** Instale as dependências:
-```bash
-pip install -r requirements.txt
-```
-
-### Erro: "ValueError: Invalid node"
-
-**Solução:** Verifique se o nó existe antes de consultar:
-```python
-kg.list_all_nodes()  # Veja os nós disponíveis
-```
-
-### O arquivo HTML não abre automaticamente
-
-**Solução:** Abra manualmente o arquivo:
-```bash
-# Windows
-start outputs\interactive_graph.html
-
-# Linux/Mac
-open outputs/interactive_graph.html
-```
-
-Ou simplesmente navegue até a pasta `outputs/` e dê duplo clique em `interactive_graph.html`
-
----
-
-## 👨‍💻 Autor
-
-**Gabriel Lins Alves do Nascimento**
-- 🐙 GitHub: [@gabriel1ns](https://github.com/gabriel1ns)
-- 📁 Repositório: [KnowledgeGraphs](https://github.com/gabriel1ns/KnowledgeGraphs)
