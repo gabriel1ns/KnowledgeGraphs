@@ -1,4 +1,5 @@
 class Graph:
+    """Classe base do Grafo"""
     def __init__(self):
         self.adjacency_list = {}
         self.nodes_data = {}
